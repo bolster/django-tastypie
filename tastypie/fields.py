@@ -556,12 +556,14 @@ class RelatedField(ApiField):
             # Be a good netizen.
             return related_resource.get_resource_uri(bundle)
         else:
+            old_bundle = bundle
             # ZOMG extra data and big payloads.
             bundle = related_resource.build_bundle(
                 obj=related_resource.instance,
                 request=bundle.request,
                 objects_saved=bundle.objects_saved
             )
+            bundle.related_obj = old_bundle.related_obj
             return related_resource.full_dehydrate(bundle)
 
     def resource_from_uri(self, fk_resource, uri, request=None, related_obj=None, related_name=None):
@@ -815,7 +817,7 @@ class ToManyField(RelatedField):
         #       ``Manager`` there.
         for m2m in the_m2ms.all():
             m2m_resource = self.get_related_resource(m2m)
-            m2m_bundle = Bundle(obj=m2m, request=bundle.request)
+            m2m_bundle = Bundle(obj=m2m, request=bundle.request, related_obj=bundle.related_obj or bundle.obj)
             self.m2m_resources.append(m2m_resource)
             m2m_dehydrated.append(self.dehydrate_related(m2m_bundle, m2m_resource, for_list=for_list))
 
